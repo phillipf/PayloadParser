@@ -1,5 +1,6 @@
 import java.io._
 import java.time.Instant
+import java.text.SimpleDateFormat
 
 import scala.io.Source
 import play.api.libs.json._
@@ -9,10 +10,10 @@ import scala.util.matching.Regex
 
 final case class Updates(serialNumber: String, subscriptionId: String, timestamp: BigInt, deviceType: Option[String]) {
 
-  val jsonPayloads: simplifiedJson = simplifiedJson("update", None, this.timestamp.toString, this.serialNumber, this.subscriptionId)
-  //val jsonPayloads = simplifyjson.map(s => finalPayload(s))
+  val jsonPayloads: simplifiedJson = simplifiedJson("update", None, this.timestamp, this.serialNumber, this.subscriptionId)
+
 }
-final case class simplifiedJson(metric: String, value: Option[Int], timestamp: String, meterid: String, subscriptionId: String)
+final case class simplifiedJson(metric: String, value: Option[Int], timestamp: BigInt, meterid: String, subscriptionId: String)
 final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId: String, resourcePath: String, value: String) {
 
   def createIntervals(in: (String,String,List[String])): List[(Int, Int)] = {
@@ -59,12 +60,16 @@ final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId
 
   }
 
-  def finalPayload(s: (Int,Int)) = simplifiedJson(resourcePath, Some(s._2), s._1.toString, serialNumber, subscriptionId)
+  def finalPayload(s: (Int,Int)) = simplifiedJson(resourcePath, Some(s._2), s._1.toLong * 1000, serialNumber, subscriptionId)
 
   val jsonPayloads = simplifyjson.map(s => finalPayload(s))
 
 }
-final case class Expirations(deviceType: Option[String], serialNumber: String, subscriptionId: String, timestamp: BigInt)
+final case class Expirations(deviceType: Option[String], serialNumber: String, subscriptionId: String, timestamp: BigInt) {
+
+  val jsonPayloads: simplifiedJson = simplifiedJson("expiration", None, this.timestamp, this.serialNumber, this.subscriptionId)
+
+}
 final case class Meter(reports: List[Reports], registrations: List[String], deregistrations: List[String], updates: List[Updates], expirations: List[Expirations], responses: List[String]) {
 
   val simplifiedReports: PartialFunction[Meter, List[simplifiedJson]] = {
@@ -75,7 +80,11 @@ final case class Meter(reports: List[Reports], registrations: List[String], dere
     case x if x.updates.nonEmpty => this.updates.map(s => s.jsonPayloads)
   }
 
-  val simplified = simplifiedReports orElse simplifiedUpdates
+  val simplifiedExpirations: PartialFunction[Meter, List[simplifiedJson]] = {
+    case x if x.expirations.nonEmpty => this.expirations.map(s => s.jsonPayloads)
+  }
+
+  val simplified = simplifiedReports orElse simplifiedUpdates orElse simplifiedExpirations
 
   val simplifiedJson = simplified(this)
 
@@ -86,11 +95,11 @@ object main extends App {
   //val filename = new File(args(0))
   //val output = new File(args(1))
   //multiple payloads
-  //val filename = new File("C:/Users/farrelp1/Documents/payloadParser/src/test/data/jsonMulti2.json")
+  val filename = new File("C:/Users/farrelp1/Documents/payloadParser/src/test/data/jsonMulti1.json")
   //multiple payloads
   //val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-08-54.json")
   //updates payloads
-  val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-07-46.json")
+  //val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-07-46.json")
 
   val file = Source.fromFile(filename).getLines.toList.mkString
 
@@ -122,6 +131,12 @@ object main extends App {
   val processed = json.flatMap(_.simplifiedJson)
   //val processed = json.simplified
 
+  def epochToDate(epochMillis: Long): String = {
+    val df:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
+    df.format(epochMillis)
+  }
+
+  println(epochToDate(processed.head.timestamp.toLong))
   def payloadwriter(file: String, output: List[simplifiedJson]) {
     val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))
 
@@ -129,8 +144,9 @@ object main extends App {
 
     writer.newLine()
     for (x <- output) {
-      //println(BigInt(x.timestamp).toLong)
-      val time = Instant.ofEpochSecond(BigInt(x.timestamp).toLong)
+      //println(x.timestamp.toString.toLong)
+      //val time = Instant.ofEpochSecond(x.timestamp.toString.toLong)
+      val time = epochToDate(x.timestamp.toLong)
       writer.write(
         x.metric + "|" +
           x.value.getOrElse("NA") + "|" +
