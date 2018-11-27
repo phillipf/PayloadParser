@@ -7,15 +7,28 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import scala.util.matching.Regex
 
-final case class Packet(meters: Array[Meter])
-final case class Meter(reports: List[Reports], registrations: List[String], deregistrations: List[String], updates: List[Updates], expirations: List[Expirations], responses: List[String]) {
+trait Id {
 
-  val simplified: List[simplifiedJson] = this.reports.flatMap(s => s.jsonPayloads)
+  def serialNumber: String
+  def subscriptionId: String
+  def timestamp: BigInt
+
 }
-final case class Updates(serialNumber: String, subscriptionId: String, timestamp: BigInt, deviceType: Option[String])
-final case class Expirations(deviceType: Option[String], serialNumber: String, subscriptionId: String, timestamp: BigInt)
-final case class simplifiedJson(metric: String, value: Int, timestamp: String, meterid:String)
-final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId: String, resourcePath: String, value: String) {
+
+//final case class Id(serialNumber: String, subscriptionId: String, timestamp: BigInt)
+
+final case class Packet(meters: Array[Meter])
+
+case class simplifiedJson(metric: String, value: Option[Int], timestamp: String, meterid:String, subscriptionId: String)
+
+case class Updates(serialNumber: String, subscriptionId: String, timestamp: BigInt, deviceType: Option[String]) extends Id {
+
+  val jsonPayload = simplifiedJson("update", None, this.timestamp.toString, this.serialNumber, this.subscriptionId)
+
+}
+final case class Expirations(deviceType: Option[String], serialNumber: String, subscriptionId: String, timestamp: BigInt) extends Id
+
+final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId: String, resourcePath: String, value: String) extends Id {
 
   def createIntervals(in: (String,String,List[String])): List[(Int, Int)] = {
 
@@ -63,12 +76,25 @@ final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId
 
   //val simplified = simplifyjson
 
-  def finalPayload(s: (Int,Int)) = simplifiedJson(resourcePath, s._2, s._1.toString, serialNumber)
+  def finalPayload(s: (Int,Int)) = simplifiedJson(resourcePath, Some(s._2), s._1.toString, serialNumber, subscriptionId)
 
   val jsonPayloads = simplifyjson.map(s => finalPayload(s))
 
 }
 
+final case class Meter(reports: List[Reports], registrations: List[String], deregistrations: List[String], updates: List[Updates], expirations: List[Expirations], responses: List[String]) {
+
+  //val simplified: List[simplifiedJson] = this.reports.flatMap(s => s.jsonPayloads)
+
+  val simplifiedReports: PartialFunction[List[Reports], List[simplifiedJson]] = {
+    case a: List[Reports] => this.reports.flatMap(s => s.jsonPayloads)
+  }
+
+  val simplifiedUpdates: PartialFunction[List[Updates], List[simplifiedJson]] = {
+    case a: List[Updates] => this.updates.flatMap(x => x.)
+  }
+
+}
 
 implicit val updatesFormat = Json.format[Updates]
 implicit val reportsFormat = Json.format[Reports]
@@ -111,6 +137,8 @@ def time[R](block: => R): Double = {
   (t1 - t0)/1000000000.00
 }
 
+json.map(_.simplified)
+
 val performance = time { json.map(_.simplified) }
 
 def getMultiPayloads(path: String): List[Meter] = {
@@ -132,10 +160,10 @@ val jsonMulti2 = getMultiPayloads("C:/Users/farrelp1/Documents/DigitalMetering/d
 
 Json.toJson(jsonMulti2)
 
-import java.io._
+/*import java.io._
 val pw = new PrintWriter(new File("C:/Users/farrelp1/Documents/payloadParser/src/test/data/jsonMulti2.json" ))
 pw.write(Json.toJson(jsonMulti2).toString())
-pw.close
+pw.close*/
 
 //val performanceMultiPayload1 = time { jsonMulti1.map(_.simplified) }
 //val performanceMultiPayload2 = time { jsonMulti2.map(_.simplified) }

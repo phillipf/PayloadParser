@@ -7,8 +7,12 @@ import play.api.libs.json._
 import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
 
-final case class Updates(serialNumber: String, subscriptionId: String, timestamp: BigInt, deviceType: Option[String])
-final case class simplifiedJson(metric: String, value: Int, timestamp: String, meterid:String)
+final case class Updates(serialNumber: String, subscriptionId: String, timestamp: BigInt, deviceType: Option[String]) {
+
+  val jsonPayloads: simplifiedJson = simplifiedJson("update", None, this.timestamp.toString, this.serialNumber, this.subscriptionId)
+  //val jsonPayloads = simplifyjson.map(s => finalPayload(s))
+}
+final case class simplifiedJson(metric: String, value: Option[Int], timestamp: String, meterid: String, subscriptionId: String)
 final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId: String, resourcePath: String, value: String) {
 
   def createIntervals(in: (String,String,List[String])): List[(Int, Int)] = {
@@ -55,9 +59,7 @@ final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId
 
   }
 
-  //val simplified = simplifyjson
-
-  def finalPayload(s: (Int,Int)) = simplifiedJson(resourcePath, s._2, s._1.toString, serialNumber)
+  def finalPayload(s: (Int,Int)) = simplifiedJson(resourcePath, Some(s._2), s._1.toString, serialNumber, subscriptionId)
 
   val jsonPayloads = simplifyjson.map(s => finalPayload(s))
 
@@ -65,15 +67,30 @@ final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId
 final case class Expirations(deviceType: Option[String], serialNumber: String, subscriptionId: String, timestamp: BigInt)
 final case class Meter(reports: List[Reports], registrations: List[String], deregistrations: List[String], updates: List[Updates], expirations: List[Expirations], responses: List[String]) {
 
-  val simplified: List[simplifiedJson] = this.reports.flatMap(s => s.jsonPayloads)
+  val simplifiedReports: PartialFunction[Meter, List[simplifiedJson]] = {
+    case x if x.reports.nonEmpty => this.reports.flatMap(s => s.jsonPayloads)
+  }
+
+  val simplifiedUpdates: PartialFunction[Meter, List[simplifiedJson]] = {
+    case x if x.updates.nonEmpty => this.updates.map(s => s.jsonPayloads)
+  }
+
+  val simplified = simplifiedReports orElse simplifiedUpdates
+
+  val simplifiedJson = simplified(this)
+
 }
 
 object main extends App {
 
-  val filename = new File(args(0))
-  val output = new File(args(1))
+  //val filename = new File(args(0))
+  //val output = new File(args(1))
+  //multiple payloads
   //val filename = new File("C:/Users/farrelp1/Documents/payloadParser/src/test/data/jsonMulti2.json")
+  //multiple payloads
   //val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-08-54.json")
+  //updates payloads
+  val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-07-46.json")
 
   val file = Source.fromFile(filename).getLines.toList.mkString
 
@@ -102,31 +119,33 @@ object main extends App {
     //Json.parse(lines).as[Meter]
   }
 
-  val processed = json.flatMap(_.simplified)
+  val processed = json.flatMap(_.simplifiedJson)
   //val processed = json.simplified
 
-  /*def payloadwriter(file: String, output: List[simplifiedJson]) {
+  def payloadwriter(file: String, output: List[simplifiedJson]) {
     val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)))
 
-    writer.write("METRIC| VALUE| TIMESTAMP| METERID")
+    writer.write("METRIC| VALUE| TIMESTAMP| METERID| SUBSCRIPTIONID")
 
     writer.newLine()
     for (x <- output) {
-      val time = (Instant.ofEpochSecond(x.timestamp.toInt))
+      //println(BigInt(x.timestamp).toLong)
+      val time = Instant.ofEpochSecond(BigInt(x.timestamp).toLong)
       writer.write(
         x.metric + "|" +
-          x.value + "|" +
+          x.value.getOrElse("NA") + "|" +
           time + "|" +
-          x.meterid + "|" + "\n")
+          x.meterid + "|" +
+          x.subscriptionId + "\n")
     }// however you want to format it
 
     writer.close()
   }
 
-  payloadwriter("output/payloads2.csv", processed)*/
-  val pw = new PrintWriter(output)
+  payloadwriter("output/payloads.csv", processed)
+  /*val pw = new PrintWriter(output)
   pw.write(Json.toJson(processed).toString())
-  pw.close
+  pw.close*/
 
   println(Json.toJson(processed))
 }
