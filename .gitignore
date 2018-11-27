@@ -18,3 +18,5 @@ project/target/
 .idea/
 .idea
 .idea/workspace.xml
+.ensime
+
