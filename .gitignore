@@ -20,3 +20,4 @@ project/target/
 .idea/workspace.xml
 .ensime
 
+.ensime_cache

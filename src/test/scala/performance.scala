@@ -24,7 +24,7 @@ class performance extends FlatSpec {
   implicit val simplifiedFormat = Json.format[simplifiedJson]
   implicit val meterFormat = Json.format[Meter]
 
-  val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-08-54.json")
+  val filename = new File("./src/test/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-08-54.json")
   val lines = Source.fromFile(filename).getLines.toList.mkString
   val json = Json.parse(lines).as[Meter]
 
@@ -41,7 +41,6 @@ class performance extends FlatSpec {
   "A single payload" should "be less than 5 seconds" in {
     assert(performanceSinglePayload < 5)
   }
-
 
   def getListOfFiles(dir: File, extensions: List[String]): List[File] = {
     dir.listFiles.filter(_.isFile).toList.filter { file =>
@@ -61,8 +60,8 @@ class performance extends FlatSpec {
     Json.parse(text2).as[List[Meter]]
   }
 
-  val jsonMulti1 = getMultiPayloads("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018")
-  val jsonMulti2 = getMultiPayloads("C:/Users/farrelp1/Documents/DigitalMetering/data/NB-IoT Payloads_imei-863703032743002_23-10-2018")
+  val jsonMulti1 = getMultiPayloads("./src/test/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018")
+  val jsonMulti2 = getMultiPayloads("./src/test/data/NB-IoT Payloads_19-10-2018")
 
 
   val performanceMultiPayload1 = time { jsonMulti1.map(_.simplified) }
