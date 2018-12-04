@@ -19,6 +19,7 @@ trait meterJson {
   implicit val reportsFormat = Json.format[Reports]
   implicit val expirationFormat = Json.format[Expirations]
   implicit val resourcesFormat = Json.format[Resources]
+  implicit val resultFormat = Json.format[Result]
   implicit val responsesFormat = Json.format[Responses]
   implicit val meterFormat = Json.format[Meter]
   implicit val simplifiedFormat = Json.format[simplifiedJson]

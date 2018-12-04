@@ -1,8 +1,9 @@
 
 final case class Responses(serialNumber: String, address: Option[String], freeFormAddress: Option[String],
-                           resources: Resources, imsi: Option[String], creationDate: Option[String], result: String, groupName: Option[String],
-                           protocol: String, requestId: String, model: Option[String], firmwareVersion: Option[String], make: Option[String], timestamp: BigInt, subscriptionId: String) {
+                           resources: List[Resources], imsi: Option[String], creationDate: Option[String], result: Result, groupName: Option[String],
+                           protocol: String, requestId: String, model: Option[String], firmwareVersion: Option[String], make: Option[String], timestamp: BigInt) {
 
+  val jsonPayloads: simplifiedJson = simplifiedJson("responses", None, this.timestamp, this.serialNumber, "")
   /*def createIntervals(in: (String,String,List[String])): List[(Int, Int)] = {
 
     val payloads = in._3.map(_.toInt)

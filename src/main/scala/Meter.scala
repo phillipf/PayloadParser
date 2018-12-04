@@ -14,7 +14,11 @@ final case class Meter(reports: List[Reports], registrations: List[String], dere
     case x if x.expirations.nonEmpty => this.expirations.map(s => s.jsonPayloads)
   }
 
-  val simplified = simplifiedReports orElse simplifiedUpdates orElse simplifiedExpirations
+  val simplifiedResponses: PartialFunction[Meter, List[simplifiedJson]] = {
+    case x if x.responses.nonEmpty => this.responses.map(s => s.jsonPayloads)
+  }
+
+  val simplified = simplifiedReports orElse simplifiedUpdates orElse simplifiedExpirations orElse simplifiedResponses
 
   val simplifiedJson = simplified(this)
 
