@@ -7,8 +7,9 @@ final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId
 
       val payloads = in._3.map(_.toInt)
       //val initial = in._1.toInt + in._2.toInt
-      val initial = in._1.toInt
-      val step = in._2.toInt
+
+      val initial = in._1.toInt //Timestamp of first Interval [32-bit integer] representing the number of seconds since Jan 1st, 1970 in the UTC time zone.
+      val step = in._2.toInt //Interval Period in seconds [32-bit integer]
 
       val result = new ListBuffer[(Int, Int)]()
       /*result += ((initial + step, payloads.head))*/

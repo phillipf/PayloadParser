@@ -82,19 +82,7 @@ final case class Reports(serialNumber: String, timestamp: BigInt, subscriptionId
 
 }
 
-final case class Meter(reports: List[Reports], registrations: List[String], deregistrations: List[String], updates: List[Updates], expirations: List[Expirations], responses: List[String]) {
 
-  //val simplified: List[simplifiedJson] = this.reports.flatMap(s => s.jsonPayloads)
-
-  val simplifiedReports: PartialFunction[List[Reports], List[simplifiedJson]] = {
-    case a: List[Reports] => this.reports.flatMap(s => s.jsonPayloads)
-  }
-
-  val simplifiedUpdates: PartialFunction[List[Updates], List[simplifiedJson]] = {
-    case a: List[Updates] => this.updates.flatMap(x => x.)
-  }
-
-}
 
 implicit val updatesFormat = Json.format[Updates]
 implicit val reportsFormat = Json.format[Reports]
@@ -159,6 +147,7 @@ val jsonMulti1 = getMultiPayloads("C:/Users/farrelp1/Documents/DigitalMetering/d
 val jsonMulti2 = getMultiPayloads("C:/Users/farrelp1/Documents/DigitalMetering/data/NB-IoT Payloads_imei-863703032743002_23-10-2018")
 
 Json.toJson(jsonMulti2)
+
 
 /*import java.io._
 val pw = new PrintWriter(new File("C:/Users/farrelp1/Documents/payloadParser/src/test/data/jsonMulti2.json" ))

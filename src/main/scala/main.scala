@@ -44,5 +44,4 @@ object main extends App with meterJson {
   pw.write(Json.toJson(processed).toString())
   pw.close*/
 
-  println(Json.toJson(processed))
 }
