@@ -3,6 +3,9 @@ import java.io.{BufferedWriter, FileOutputStream, OutputStreamWriter}
 import main.epochToDate
 import play.api.libs.json._
 
+import scala.collection.mutable.ListBuffer
+import scala.util.matching.Regex
+
 trait meterJson {
 
   implicit val BigIntWrite: Writes[BigInt] = new Writes[BigInt] {
@@ -38,8 +41,8 @@ trait meterJson {
         x.metric + "|" +
           x.value.getOrElse("NA") + "|" +
           time + "|" +
-          x.meterid + "|" +
-          x.subscriptionId + "\n")
+          //x.meterid + "|" +
+          "\n")
     }// however you want to format it
 
     writer.close()
@@ -60,11 +63,13 @@ trait meterJson {
           x.value.getOrElse("NA") + "|" +
           x.objectReference + "|" +
           time + "|" +
-          x.meterid + "|" +
-          x.subscriptionId + "\n")
+          //x.meterid + "|" +
+          "\n")
     }// however you want to format it
 
     writer.close()
   }
+
+
 
 }

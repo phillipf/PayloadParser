@@ -10,7 +10,7 @@ object main extends App with meterJson {
   //val filename = new File(args(0))
   //val output = new File(args(1))
   //multiple payloads
-  val filename = new File("./src/test/data/jsonMulti2.json")
+  val filename = new File("./src/test/data/jsonMulti1.json")
   //multiple payloads
   //val filename = new File("C:/Users/farrelp1/Documents/DigitalMetering/data/Nb-IoT Payloads_imei-863703032742533_19-10-2018/cww-2018-10-18-16-08-54.json")
   //updates payloads
@@ -28,6 +28,7 @@ object main extends App with meterJson {
   }
 
   val intermediate = json.flatMap(_.intermediateJson)
+  println(intermediate)
   val processed = json.flatMap(_.simplifiedJson)
   //val processed = json.simplified
 
