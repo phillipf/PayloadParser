@@ -1,4 +1,4 @@
 
-final case class tsdbPayload(metric: String, value: Option[Int], timestamp: BigInt, tags: tsdbTags) {
+final case class tsdbPayload(metric: String, timestamp: BigInt, value: Option[Int], tags: tsdbTags) {
 
 }
