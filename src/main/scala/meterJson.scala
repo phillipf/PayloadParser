@@ -25,6 +25,8 @@ trait meterJson {
   implicit val resultFormat = Json.format[Result]
   implicit val responsesFormat = Json.format[Responses]
   implicit val meterFormat = Json.format[Meter]
+  implicit val tsdbTagsFormat = Json.format[tsdbTags]
+  implicit val tsdbPayloadFormat = Json.format[tsdbPayload]
   implicit val simplifiedFormat = Json.format[simplifiedJson]
 
   def payloadwriterFinal(file: String, output: List[simplifiedJson]) {

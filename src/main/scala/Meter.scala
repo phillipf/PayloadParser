@@ -22,6 +22,8 @@ final case class Meter(reports: List[Reports], registrations: List[String], dere
 
   val simplifiedJson = simplified(this)
 
+  val tsdbJson = simplifiedJson.map(_.toTsdb)
+
   val intermediateJson = this.reports.flatMap(s => s.jsonInstermediatePayloads)
 
 }

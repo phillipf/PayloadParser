@@ -5,7 +5,7 @@ import doobie._
 import doobie.implicits._
 
 
-class responsesTest extends FlatSpec with meterJson {
+/*class responsesTest extends FlatSpec with meterJson {
 
   val xa = Transactor.fromDriverManager[IO](
     "com.microsoft.sqlserver.jdbc.SQLServerDriver",
@@ -26,4 +26,4 @@ class responsesTest extends FlatSpec with meterJson {
   val lines = if(payloads.head != '[') ("[" +: payloads :+ "]").mkString else payloads
   val json = Json.parse(lines).as[List[Meter]]
 
-}
+}*/

@@ -29,8 +29,8 @@ object main extends App with meterJson {
 
   val intermediate = json.flatMap(_.intermediateJson)
   println(intermediate)
-  val processed = json.flatMap(_.simplifiedJson)
-  //val processed = json.simplified
+  //val processed = json.flatMap(_.simplifiedJson)
+  val processed = json.flatMap(_.tsdbJson)
 
   def epochToDate(epochMillis: Long): String = {
     val df:SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -39,10 +39,10 @@ object main extends App with meterJson {
 
   println(epochToDate(processed.head.timestamp.toLong))
 
-  payloadwriterFinal("output/payloads.csv", processed)
-  payloadwriterIntermediate("output/payloadsIntermediate.csv", intermediate)
-  /*val pw = new PrintWriter(output)
+  //payloadwriterFinal("output/payloads.csv", processed)
+  //payloadwriterIntermediate("output/payloadsIntermediate.csv", intermediate)
+  val pw = new PrintWriter("output/tsdb.json")
   pw.write(Json.toJson(processed).toString())
-  pw.close*/
+  pw.close
 
 }
